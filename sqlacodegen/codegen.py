@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 import inspect
+import os
 import re
 import sys
 from collections import defaultdict
@@ -333,7 +334,7 @@ class CodeGenerator(object):
     def __init__(self, metadata, noindexes=False, noconstraints=False, nojoined=False,
                  noinflect=False, noclasses=False, indentation='    ', model_separator='\n\n',
                  ignored_tables=('alembic_version', 'migrate_version'), table_model=ModelTable,
-                 class_model=ModelClass,  template=None, nocomments=False):
+                 class_model=ModelClass, template=None, nocomments=False):
         super(CodeGenerator, self).__init__()
         self.metadata = metadata
         self.noindexes = noindexes
@@ -599,7 +600,7 @@ class CodeGenerator(object):
         return rendered + delimiter.join(args) + end
 
     def render_table(self, model):
-        rendered = 't_{0} = Table(\n{1}{0!r}, metadata,\n'.format(
+        rendered = '{0} = Table(\n{1}{0!r}, metadata,\n'.format(
             model.table.name, self.indentation)
 
         for column in model.table.columns:
@@ -680,11 +681,36 @@ class CodeGenerator(object):
         return rendered
 
     def render(self, outfile=sys.stdout):
+        table_directory = 'tables'
+        views_directory = 'views'
+        for directory in table_directory, views_directory:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
         rendered_models = []
         for model in self.models:
             if isinstance(model, self.class_model):
+                file = '.'.join((self._to_snake_case(model.table.name), 'py'))
+                data = self.template.format(
+                    imports=self.render_imports(),
+                    metadata_declarations=self.render_metadata_declarations(),
+                    models=self.render_class(model).rstrip('\n')
+                )
+                output_file = os.path.join(table_directory, file)
+                with open(output_file, 'w') as f:
+                    f.write(data)
                 rendered_models.append(self.render_class(model))
+
             elif isinstance(model, self.table_model):
+                file = '.'.join((self._to_snake_case(model.table.name), 'py'))
+                data = self.template.format(
+                    imports=self.render_imports(),
+                    metadata_declarations=self.render_metadata_declarations(),
+                    models=self.render_table(model).rstrip('\n')
+                )
+                output_file = os.path.join(views_directory, file)
+                with open(output_file, 'w') as f:
+                    f.write(data)
                 rendered_models.append(self.render_table(model))
 
         output = self.template.format(
@@ -692,3 +718,9 @@ class CodeGenerator(object):
             metadata_declarations=self.render_metadata_declarations(),
             models=self.model_separator.join(rendered_models).rstrip('\n'))
         print(output, file=outfile)
+
+    @staticmethod
+    def _to_snake_case(table_name):
+        string = table_name.replace('_', '')
+        string = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', string)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
