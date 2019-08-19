@@ -449,8 +449,8 @@ class CodeGenerator(object):
 
     def render_metadata_declarations(self):
         if 'sqlalchemy.ext.declarative' in self.collector:
-            return 'Base = declarative_base()\nmetadata = Base.metadata'
-        return 'metadata = MetaData()'
+            return 'from database import Base\nfrom database import metadata'
+        return 'from database import metadata'
 
     def _get_compiled_expression(self, statement):
         """Return the statement in a form where any placeholders have been filled in."""
@@ -601,7 +601,7 @@ class CodeGenerator(object):
 
     def render_table(self, model):
         rendered = '{0} = Table(\n{1}{0!r}, metadata,\n'.format(
-            model.table.name, self.indentation)
+            self._to_snake_case(model.table.name), self.indentation)
 
         for column in model.table.columns:
             rendered += '{0}{1},\n'.format(self.indentation, self.render_column(column, True))
@@ -699,6 +699,7 @@ class CodeGenerator(object):
                 output_file = os.path.join(table_directory, file)
                 with open(output_file, 'w') as f:
                     f.write(data)
+                    f.write('\n')
                 rendered_models.append(self.render_class(model))
 
             elif isinstance(model, self.table_model):
@@ -711,6 +712,7 @@ class CodeGenerator(object):
                 output_file = os.path.join(views_directory, file)
                 with open(output_file, 'w') as f:
                     f.write(data)
+                    f.write('\n')
                 rendered_models.append(self.render_table(model))
 
         output = self.template.format(
