@@ -718,7 +718,7 @@ class CodeGenerator(object):
                 i = 1
                 while os.path.exists(output_file):
                     file = '.'.join(('{}_{}'.format(self._to_snake_case(model.table.name), i), 'py'))
-                    output_file = os.path.join(table_directory, file)
+                    output_file = os.path.join(views_directory, file)
                     i += 1
                 with open(output_file, 'w') as f:
                     f.write(data)
