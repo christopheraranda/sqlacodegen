@@ -449,7 +449,7 @@ class CodeGenerator(object):
 
     def render_metadata_declarations(self):
         if 'sqlalchemy.ext.declarative' in self.collector:
-            return 'from database import Base'
+            return 'from database import Base, metadata'
         return 'from database import metadata'
 
     def _get_compiled_expression(self, statement):
