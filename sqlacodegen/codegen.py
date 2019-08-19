@@ -449,7 +449,7 @@ class CodeGenerator(object):
 
     def render_metadata_declarations(self):
         if 'sqlalchemy.ext.declarative' in self.collector:
-            return 'from database import Base, metadata'
+            return 'from database import Base'
         return 'from database import metadata'
 
     def _get_compiled_expression(self, statement):
@@ -697,6 +697,11 @@ class CodeGenerator(object):
                     models=self.render_class(model).rstrip('\n')
                 )
                 output_file = os.path.join(table_directory, file)
+                i = 1
+                while os.path.exists(output_file):
+                    file = '.'.join(('{}_{}'.format(self._to_snake_case(model.table.name), i), 'py'))
+                    output_file = os.path.join(table_directory, file)
+                    i += 1
                 with open(output_file, 'w') as f:
                     f.write(data)
                     f.write('\n')
@@ -710,6 +715,11 @@ class CodeGenerator(object):
                     models=self.render_table(model).rstrip('\n')
                 )
                 output_file = os.path.join(views_directory, file)
+                i = 1
+                while os.path.exists(output_file):
+                    file = '.'.join(('{}_{}'.format(self._to_snake_case(model.table.name), i), 'py'))
+                    output_file = os.path.join(table_directory, file)
+                    i += 1
                 with open(output_file, 'w') as f:
                     f.write(data)
                     f.write('\n')
