@@ -743,12 +743,23 @@ class CodeGenerator(object):
         string = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', string)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
+    def _tablename_to_classname(self, tablename):
+        tablename = self._convert_to_valid_identifier(tablename)
+        return ''.join(part[:1].upper() + part[1:] for part in tablename.split('_'))
+
     @staticmethod
-    def _get_class_name(table_name):
-        return table_name.replace('_', '').title()
+    def _convert_to_valid_identifier(name):
+        assert name, 'Identifier cannot be empty'
+        if name[0].isdigit() or iskeyword(name):
+            name = '_' + name
+        elif name == 'metadata':
+            name = 'metadata_'
+        return _re_invalid_identifier.sub('_', name)
 
     def _get_class(self, table_name):
-        return ['\n\nclass {}:'.format(self._get_class_name(table_name)), '{}pass\n'.format(self.indentation)]
+        class_name = self._tablename_to_classname(table_name)
+        return ['\n\nclass {}:'.format(class_name), '{}pass\n'.format(self.indentation)]
 
     def _get_mapper(self, table_name):
-        return '\nmapper({}, {})'.format(self._get_class_name(table_name), self._to_snake_case(table_name))
+        class_name = self._tablename_to_classname(table_name)
+        return '\nmapper({}, {})'.format(class_name, self._to_snake_case(table_name))
