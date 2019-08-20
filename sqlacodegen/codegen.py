@@ -742,8 +742,12 @@ class CodeGenerator(object):
         string = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', string)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
+    @staticmethod
+    def _get_class_name(table_name):
+        return table_name.replace('_', '').capitalize()
+
     def _get_class(self, table_name):
-        return ['\nclass {}:'.format(table_name.replace('_', '')), '{}pass\n'.format(self.indentation)]
+        return ['\nclass {}:'.format(self._get_class_name(table_name)), '{}pass\n'.format(self.indentation)]
 
     def _get_mapper(self, table_name):
-        return '\nmapper({}, {})'.format(table_name.replace('_', ''), self._to_snake_case(table_name))
+        return '\nmapper({}, {})'.format(self._get_class_name(table_name), self._to_snake_case(table_name))
