@@ -759,7 +759,7 @@ class CodeGenerator(object):
 
     def _get_class(self, table_name):
         class_name = self._tablename_to_classname(table_name)
-        return ['\n\nclass {}:'.format(class_name), '{}pass\n'.format(self.indentation)]
+        return ['\n\nclass {}(object):'.format(class_name), '{}pass\n'.format(self.indentation)]
 
     def _get_mapper(self, table_name):
         class_name = self._tablename_to_classname(table_name)
