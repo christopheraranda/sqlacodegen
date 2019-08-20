@@ -745,10 +745,10 @@ class CodeGenerator(object):
 
     @staticmethod
     def _get_class_name(table_name):
-        return table_name.replace('_', '').capitalize()
+        return table_name.replace('_', '').title()
 
     def _get_class(self, table_name):
-        return ['\nclass {}:'.format(self._get_class_name(table_name)), '{}pass\n'.format(self.indentation)]
+        return ['\n\nclass {}:'.format(self._get_class_name(table_name)), '{}pass\n'.format(self.indentation)]
 
     def _get_mapper(self, table_name):
         return '\nmapper({}, {})'.format(self._get_class_name(table_name), self._to_snake_case(table_name))
