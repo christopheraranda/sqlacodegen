@@ -695,7 +695,7 @@ class CodeGenerator(object):
                 file = '.'.join((self._to_snake_case(model.table.name), 'py'))
                 data = self.template.format(
                     imports=self.render_imports(),
-                    metadata_declarations=self.render_metadata_declarations(),
+                    metadata_declarations='Base = declarative_base()',
                     models=self.render_class(model).rstrip('\n')
                 )
                 output_file = os.path.join(table_directory, file)
@@ -713,7 +713,7 @@ class CodeGenerator(object):
                 file = '.'.join((self._to_snake_case(model.table.name), 'py'))
                 data = self.template.format(
                     imports=self.render_imports(),
-                    metadata_declarations=self.render_metadata_declarations(),
+                    metadata_declarations='metadata = MetaData()',
                     models=self.render_table(model).rstrip('\n')
                 )
                 output_file = os.path.join(views_directory, file)
