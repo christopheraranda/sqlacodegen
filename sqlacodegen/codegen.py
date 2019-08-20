@@ -164,6 +164,7 @@ class ModelTable(Model):
     def add_imports(self, collector):
         super(ModelTable, self).add_imports(collector)
         collector.add_import(Table)
+        collector.add_literal_import('sqlalchemy.orm', 'mapper')
 
 
 class ModelClass(Model):
