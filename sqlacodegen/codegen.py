@@ -433,6 +433,7 @@ class CodeGenerator(object):
         # classes or not
         if not any(isinstance(model, self.class_model) for model in self.models):
             self.collector.add_literal_import('sqlalchemy', 'MetaData')
+            self.collector.add_literal_import('sqlalchemy.orm', 'mapper')
         else:
             self.collector.add_literal_import('sqlalchemy.ext.declarative', 'declarative_base')
 
@@ -721,9 +722,10 @@ class CodeGenerator(object):
                     output_file = os.path.join(views_directory, file)
                     i += 1
                 lines = self._get_class(model.table.name)
-                lines.extend(self._get_mapper(model.table.name))
+                lines.append(self._get_mapper(model.table.name))
                 with open(output_file, 'w') as f:
                     f.write(data)
+                    f.write('\n')
                     f.write('\n'.join(lines))
                     f.write('\n')
                 rendered_models.append(self.render_table(model))
@@ -741,7 +743,7 @@ class CodeGenerator(object):
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
     def _get_class(self, table_name):
-        return ['\nclass {}:'.format(table_name.replace('_', '')), '{}pass'.format(self.indentation)]
+        return ['\nclass {}:'.format(table_name.replace('_', '')), '{}pass\n'.format(self.indentation)]
 
     def _get_mapper(self, table_name):
         return '\nmapper({}, {})'.format(table_name.replace('_', ''), self._to_snake_case(table_name))
