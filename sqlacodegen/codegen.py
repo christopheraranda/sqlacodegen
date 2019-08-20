@@ -449,8 +449,8 @@ class CodeGenerator(object):
 
     def render_metadata_declarations(self):
         if 'sqlalchemy.ext.declarative' in self.collector:
-            return 'from database import Base, metadata'
-        return 'from database import metadata'
+            return 'Base = declarative_base()\nmetadata = Base.metadata'
+        return 'metadata = MetaData()'
 
     def _get_compiled_expression(self, statement):
         """Return the statement in a form where any placeholders have been filled in."""
@@ -720,8 +720,11 @@ class CodeGenerator(object):
                     file = '.'.join(('{}_{}'.format(self._to_snake_case(model.table.name), i), 'py'))
                     output_file = os.path.join(views_directory, file)
                     i += 1
+                lines = self._get_class(model.table.name)
+                lines.extend(self._get_mapper(model.table.name))
                 with open(output_file, 'w') as f:
                     f.write(data)
+                    f.write('\n'.join(lines))
                     f.write('\n')
                 rendered_models.append(self.render_table(model))
 
@@ -736,3 +739,9 @@ class CodeGenerator(object):
         string = table_name.replace('_', '')
         string = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', string)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
+
+    def _get_class(self, table_name):
+        return ['\nclass {}:'.format(table_name.replace('_', '')), '{}pass'.format(self.indentation)]
+
+    def _get_mapper(self, table_name):
+        return '\nmapper({}, {})'.format(table_name.replace('_', ''), self._to_snake_case(table_name))
